@@ -1,0 +1,36 @@
+#
+# Rng_Prg260 driver
+#
+# Copyright (C) 2023, HENSOLDT Cyber GmbH
+#
+
+cmake_minimum_required(VERSION 3.17)
+
+
+#-------------------------------------------------------------------------------
+#
+# Declare Prg260 RNG CAmkES Component
+#
+# Parameters:
+#
+#   <name>
+#       component instance name
+#
+function(Rng_Prg260_DeclareCAmkESComponent
+    name
+)
+
+    DeclareCAmkESComponent(
+        ${name}
+        SOURCES
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/driver.c
+        C_FLAGS
+            -Wall
+            -Werror
+        LIBS
+            os_core_api
+            lib_debug
+            lib_io
+    )
+
+endfunction()

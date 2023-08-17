@@ -1,0 +1,89 @@
+/*
+ *Rng_Prg260 CAmkES Component
+ *
+ * Copyright (C) 2020-2023, HENSOLDT Cyber GmbH
+ *
+ */
+
+#pragma once
+
+import <std_connector.camkes>;
+#include <if_OS_Nic.camkes>
+import <if_OS_Logger.camkes>;
+
+
+//------------------------------------------------------------------------------
+// Declare the Rng_Prg260 Driver with a given type name:
+//   Rng_Prg260_COMPONENT_DEFINE(
+//       <name>,<bufferSize>
+//   )
+#define Rng_Prg260_COMPONENT_DEFINE(_name_) \
+    component _name_ { \
+        uses if_OS_BlockingWrite uart_rpc; \
+        dataport Buf(Uart_INPUT_FIFO_DATAPORT_SIZE) uart_input_port; \
+        dataport Buf uart_output_port; \
+        consumes EventDataAvailable uart_event; \
+        provides  if_OS_Entropy             entropy_rpc; \
+        dataport  Buf                       entropy_port; \
+        maybe uses      if_OS_Logger logServer_rpc; \
+        maybe dataport  Buf          logServer_port; \
+    };
+    
+
+
+//------------------------------------------------------------------------------
+// Connect the optional logger:
+//   Rng_Prg260_INSTANCE_CONNECT_OPTIONAL_LOGGER(
+//       <instance>,
+//       <logger>.<rpc>, <logger>.<port_to>
+//   )
+#define Rng_Prg260_INSTANCE_CONNECT_OPTIONAL_LOGGER( \
+    _inst_, \
+    _log_rpc_, \
+    _log_port_) \
+    \
+    connection seL4RPCCall \
+        _inst_ ## _log_rpc( \
+            from    _inst_.logServer_rpc, \
+            to      _log_rpc_); \
+    connection seL4SharedData \
+        _inst_ ## _log_port( \
+            from    _inst_.logServer_port, \
+            to      _log_port_);
+
+
+
+#define Rng_Prg260_INSTANCE_CONNECT_UART( \
+    _inst_, \
+    _uart_) \
+    \
+    connection  seL4RPCCall _uart_ ## _Uart_rpc( \
+        from _inst_.uart_rpc, \
+        to   _uart_.UartDrv); \
+    \
+    connection  seL4SharedData  _uart_ ## _Uart_inputDataport( \
+        from _uart_.Uart_inputFifoDataport, \
+        to   _inst_.uart_input_port); \
+    \
+    connection  seL4SharedData  _uart_ ## _Uart_outputFifoDataport( \
+        from _inst_.uart_output_port, \
+        to   _uart_.Uart_outputDataport); \
+    \
+    connection  seL4Notification  _uart_ ## Uart_DataAvailable( \
+        from _uart_.Uart_DataAvailable, \
+        to   _inst_.uart_event);
+
+#define Rng_Prg260_INSTANCE_CONNECT_CLIENT(\
+    _inst_, \
+    _rpc_, \
+    _port_) \
+    connection seL4RPCCall \
+        _inst_ ## _entropySource_rpc( \
+            from    _rpc_, \
+            to      _inst_.entropy_rpc \
+        ); \
+    connection seL4SharedData \
+        _inst_ ## _entropySource_port( \
+            from    _port_, \
+            to      _inst_.entropy_port \
+        );
