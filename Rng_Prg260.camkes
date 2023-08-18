@@ -10,6 +10,8 @@
 import <std_connector.camkes>;
 #include <if_OS_Nic.camkes>
 import <if_OS_Logger.camkes>;
+import <if_OS_Entropy.camkes>;
+import <Rng_Prg260/interface/if_OS_PRG260_Keystore.camkes>;
 
 
 //------------------------------------------------------------------------------
@@ -25,6 +27,7 @@ import <if_OS_Logger.camkes>;
         consumes EventDataAvailable uart_event; \
         provides  if_OS_Entropy             entropy_rpc; \
         dataport  Buf                       entropy_port; \
+        provides if_OS_PRG260_Keystore      prg260_keystore_rpc; \
         maybe uses      if_OS_Logger logServer_rpc; \
         maybe dataport  Buf          logServer_port; \
     };
@@ -73,7 +76,7 @@ import <if_OS_Logger.camkes>;
         from _uart_.Uart_DataAvailable, \
         to   _inst_.uart_event);
 
-#define Rng_Prg260_INSTANCE_CONNECT_CLIENT(\
+#define Rng_Prg260_INSTANCE_CONNECT_ENTROPY(\
     _inst_, \
     _rpc_, \
     _port_) \
@@ -86,4 +89,13 @@ import <if_OS_Logger.camkes>;
         _inst_ ## _entropySource_port( \
             from    _port_, \
             to      _inst_.entropy_port \
+        );
+
+#define Rng_Prg260_INSTANCE_CONNECT_KEYSTORE(\
+    _inst_,\
+    _rpc_)\
+    connection seL4RPCCall \
+        _inst_ ## _prg260_keystore_rpc(\
+            from    _rpc_, \
+            to      _inst_.prg260_keystore_rpc \
         );
