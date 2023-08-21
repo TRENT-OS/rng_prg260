@@ -10,7 +10,7 @@
 
 typedef char Prg260_Key_t[192];
 
-typedef long unsigned int Prg260_Pin_t;
+typedef uint64_t Prg260_Pin_t;
 
 typedef struct
 {
