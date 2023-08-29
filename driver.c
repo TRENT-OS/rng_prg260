@@ -76,7 +76,9 @@ void uart_rng_read(uart_ctx_t *ctx, void *buffer, size_t *amount) {
 void uart_rng_read_blocking(uart_ctx_t *ctx, void *buffer, size_t amount) {
     FifoDataport* fifo = ctx->uart_input_fifo;
 
-    while (FifoDataport_getSize(fifo) < amount);
+    while (FifoDataport_getSize(fifo) < amount) {
+        seL4_Yield();
+    }
 
     void * buf = NULL;
     FifoDataport_getContiguous(fifo, &buf);
